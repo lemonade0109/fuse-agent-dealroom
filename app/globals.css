@@ -5,12 +5,16 @@
 }
 
 html {
-  background: #f7f8fa;
+  background: #f6f7fb;
 }
 
 body {
   margin: 0;
-  background: #f7f8fa;
-  color: #171717;
+  background: #f6f7fb;
+  color: #0f172a;
   font-family: Arial, Helvetica, sans-serif;
+}
+
+button {
+  cursor: pointer;
 }
