@@ -14,6 +14,7 @@ import {
   Target,
   UserRound,
 } from "lucide-react";
+import Link from "next/link";
 
 const agentActivity = [
   {
@@ -241,10 +242,13 @@ export default function Home() {
                     </div>
                   </div>
 
-                  <button className="mt-6 flex w-full items-center justify-center gap-2 rounded-2xl bg-white px-4 py-3 font-semibold text-slate-950 transition hover:bg-slate-100">
+                  <Link
+                    href="/accounts/acme/review"
+                    className="mt-6 flex w-full items-center justify-center gap-2 rounded-2xl bg-white px-4 py-3 font-semibold text-slate-950 transition hover:bg-slate-100"
+                  >
                     Review & approve
                     <ChevronRight size={18} />
-                  </button>
+                  </Link>
                 </div>
               </div>
             </section>
