@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import {
   ArrowLeft,
   Bot,
@@ -39,7 +40,32 @@ const evidence = [
   },
 ];
 
+const defaultMessage = `Hi Maya,
+
+I noticed Acme has been expanding its GTM team quite aggressively, particularly across Sales and Revenue Operations. Teams at that stage often start feeling the friction of manual research, enrichment, and follow-up across multiple tools.
+
+Fuse helps revenue teams coordinate AI agents across those workflows while keeping humans in control of important actions. Thought it might be relevant given the direction your team appears to be heading.
+
+Worth a quick conversation?`;
+
+type DecisionState = "pending" | "approved" | "rejected";
+
 export default function ReviewPage() {
+  const [decision, setDecision] = useState<DecisionState>("pending");
+  const [isEditing, setIsEditing] = useState(false);
+  const [message, setMessage] = useState(defaultMessage);
+  const [savedMessage, setSavedMessage] = useState(defaultMessage);
+
+  const saveEdit = () => {
+    setSavedMessage(message);
+    setIsEditing(false);
+  };
+
+  const cancelEdit = () => {
+    setMessage(savedMessage);
+    setIsEditing(false);
+  };
+
   return (
     <main className="min-h-screen bg-[#f6f7fb] text-slate-950">
       <header className="border-b border-slate-200 bg-white">
@@ -152,33 +178,46 @@ export default function ReviewPage() {
                 <h2 className="text-xl font-semibold">Outreach message</h2>
               </div>
 
-              <button className="flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700">
-                <Pencil size={15} />
-                Edit
-              </button>
+              {!isEditing && decision === "pending" && (
+                <button
+                  onClick={() => setIsEditing(true)}
+                  className="flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700"
+                >
+                  <Pencil size={15} />
+                  Edit
+                </button>
+              )}
             </div>
 
-            <div className="rounded-2xl bg-slate-50 p-5">
-              <p className="text-sm font-medium text-slate-900">Hi Maya,</p>
+            {isEditing ? (
+              <div>
+                <textarea
+                  value={message}
+                  onChange={(event) => setMessage(event.target.value)}
+                  className="min-h-64 w-full resize-none rounded-2xl border border-slate-200 bg-slate-50 p-5 text-sm leading-7 text-slate-700 outline-none transition focus:border-slate-400"
+                />
 
-              <p className="mt-4 text-sm leading-7 text-slate-600">
-                I noticed Acme has been expanding its GTM team quite
-                aggressively, particularly across Sales and Revenue Operations.
-                Teams at that stage often start feeling the friction of manual
-                research, enrichment, and follow-up across multiple tools.
-              </p>
+                <div className="mt-4 flex flex-wrap gap-3">
+                  <button
+                    onClick={saveEdit}
+                    className="rounded-xl bg-slate-950 px-4 py-2 text-sm font-semibold text-white"
+                  >
+                    Save changes
+                  </button>
 
-              <p className="mt-4 text-sm leading-7 text-slate-600">
-                Fuse helps revenue teams coordinate AI agents across those
-                workflows while keeping humans in control of important actions.
-                Thought it might be relevant given the direction your team
-                appears to be heading.
-              </p>
-
-              <p className="mt-4 text-sm leading-7 text-slate-600">
-                Worth a quick conversation?
-              </p>
-            </div>
+                  <button
+                    onClick={cancelEdit}
+                    className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="whitespace-pre-line rounded-2xl bg-slate-50 p-5 text-sm leading-7 text-slate-600">
+                {savedMessage}
+              </div>
+            )}
           </div>
         </section>
 
@@ -223,32 +262,131 @@ export default function ReviewPage() {
             </div>
           </div>
 
-          <div className="sticky top-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-            <p className="text-sm text-slate-500">Decision</p>
-            <h2 className="mt-1 text-xl font-semibold">Approve this action?</h2>
-
-            <p className="mt-3 text-sm leading-6 text-slate-500">
-              Approval will move this recommendation into the execution queue.
-            </p>
-
-            <button className="mt-6 flex w-full items-center justify-center gap-2 rounded-2xl bg-slate-950 px-4 py-3 font-semibold text-white transition hover:bg-slate-800">
-              <Check size={18} />
-              Approve action
-            </button>
-
-            <button className="mt-3 flex w-full items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 font-semibold text-slate-700 transition hover:bg-slate-50">
-              <Pencil size={17} />
-              Edit first
-            </button>
-
-            <button className="mt-3 flex w-full items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-rose-600">
-              <X size={17} />
-              Reject recommendation
-            </button>
-          </div>
+          <DecisionPanel
+            decision={decision}
+            onApprove={() => setDecision("approved")}
+            onReject={() => setDecision("rejected")}
+            onEdit={() => setIsEditing(true)}
+            onReset={() => setDecision("pending")}
+          />
         </aside>
       </div>
     </main>
+  );
+}
+
+function DecisionPanel({
+  decision,
+  onApprove,
+  onReject,
+  onEdit,
+  onReset,
+}: {
+  decision: DecisionState;
+  onApprove: () => void;
+  onReject: () => void;
+  onEdit: () => void;
+  onReset: () => void;
+}) {
+  if (decision === "approved") {
+    return (
+      <div className="sticky top-6 rounded-3xl border border-emerald-200 bg-white p-6 shadow-sm">
+        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700">
+          <CheckCircle2 size={24} />
+        </div>
+
+        <p className="mt-5 text-sm font-medium text-emerald-700">
+          Action approved
+        </p>
+
+        <h2 className="mt-1 text-xl font-semibold">Added to execution queue</h2>
+
+        <p className="mt-3 text-sm leading-6 text-slate-500">
+          The outreach to Maya Chen is now ready for the Outreach Agent to
+          execute.
+        </p>
+
+        <Link
+          href="/accounts/acme/execution"
+          className="mt-6 flex w-full items-center justify-center rounded-2xl bg-slate-950 px-4 py-3 font-semibold text-white transition hover:bg-slate-800"
+        >
+          View execution
+        </Link>
+
+        <button
+          onClick={onReset}
+          className="mt-3 w-full px-4 py-2 text-sm font-medium text-slate-500"
+        >
+          Undo approval
+        </button>
+      </div>
+    );
+  }
+
+  if (decision === "rejected") {
+    return (
+      <div className="sticky top-6 rounded-3xl border border-rose-200 bg-white p-6 shadow-sm">
+        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-rose-50 text-rose-600">
+          <X size={24} />
+        </div>
+
+        <p className="mt-5 text-sm font-medium text-rose-600">
+          Recommendation rejected
+        </p>
+
+        <h2 className="mt-1 text-xl font-semibold">
+          No action will be executed
+        </h2>
+
+        <p className="mt-3 text-sm leading-6 text-slate-500">
+          The recommendation stays in the audit trail, but no prospect outreach
+          will be sent.
+        </p>
+
+        <button
+          onClick={onReset}
+          className="mt-6 w-full rounded-2xl bg-slate-950 px-4 py-3 font-semibold text-white"
+        >
+          Reconsider recommendation
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="sticky top-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+      <p className="text-sm text-slate-500">Decision</p>
+
+      <h2 className="mt-1 text-xl font-semibold">Approve this action?</h2>
+
+      <p className="mt-3 text-sm leading-6 text-slate-500">
+        Approval will move this recommendation into the execution queue.
+      </p>
+
+      <button
+        onClick={onApprove}
+        className="mt-6 flex w-full items-center justify-center gap-2 rounded-2xl bg-slate-950 px-4 py-3 font-semibold text-white transition hover:bg-slate-800"
+      >
+        <Check size={18} />
+        Approve action
+      </button>
+
+      <button
+        onClick={onEdit}
+        className="mt-3 flex w-full items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 font-semibold text-slate-700 transition hover:bg-slate-50"
+      >
+        <Pencil size={17} />
+        Edit first
+      </button>
+
+      <button
+        onClick={onReject}
+        className="mt-3 flex w-full items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-rose-600"
+      >
+        <X size={17} />
+        Reject recommendation
+      </button>
+    </div>
   );
 }
 
