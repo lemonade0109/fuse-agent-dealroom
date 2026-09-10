@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
   ArrowLeft,
   Bot,
@@ -55,6 +55,19 @@ export default function ReviewPage() {
   const [isEditing, setIsEditing] = useState(false);
   const [message, setMessage] = useState(defaultMessage);
   const [savedMessage, setSavedMessage] = useState(defaultMessage);
+
+  const editSectionRef = useRef<HTMLDivElement>(null);
+
+  const startEditing = () => {
+    setIsEditing(true);
+
+    setTimeout(() => {
+      editSectionRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+    }, 50);
+  };
 
   const saveEdit = () => {
     setSavedMessage(message);
@@ -171,7 +184,10 @@ export default function ReviewPage() {
             </div>
           </div>
 
-          <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+          <div
+            className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm"
+            ref={editSectionRef}
+          >
             <div className="mb-5 flex items-center justify-between gap-4">
               <div>
                 <p className="text-sm text-slate-500">Proposed execution</p>
@@ -180,7 +196,7 @@ export default function ReviewPage() {
 
               {!isEditing && decision === "pending" && (
                 <button
-                  onClick={() => setIsEditing(true)}
+                  onClick={startEditing}
                   className="flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700"
                 >
                   <Pencil size={15} />
@@ -266,7 +282,7 @@ export default function ReviewPage() {
             decision={decision}
             onApprove={() => setDecision("approved")}
             onReject={() => setDecision("rejected")}
-            onEdit={() => setIsEditing(true)}
+            onEdit={startEditing}
             onReset={() => setDecision("pending")}
           />
         </aside>
