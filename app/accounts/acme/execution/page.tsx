@@ -12,7 +12,7 @@ import {
   Sparkles,
   UserRound,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const timeline = [
   {
@@ -58,17 +58,32 @@ const timeline = [
 type ExecutionStatus = "ready" | "sending" | "sent";
 
 export default function ExecutionPage() {
+  const [approvedMessage, setApprovedMessage] = useState(() => {
+    if (typeof window === "undefined") {
+      return "Hi Maya, I noticed Acme has been expanding its GTM team and investing more in revenue operations. I thought it might be useful to share how Fuse could help your team automate account research and outreach workflows.";
+    }
+
+    return (
+      sessionStorage.getItem("fuse-approved-message") ??
+      "Hi Maya, I noticed Acme has been expanding its GTM team and investing more in revenue operations. I thought it might be useful to share how Fuse could help your team automate account research and outreach workflows."
+    );
+  });
+
   const [executionStatus, setExecutionStatus] =
     useState<ExecutionStatus>("ready");
 
   const executeOutreach = () => {
     if (executionStatus !== "ready") return;
 
+    sessionStorage.setItem("fuse-execution-status", "executing");
+
     setExecutionStatus("sending");
 
     setTimeout(() => {
+        
       setExecutionStatus("sent");
-    }, 1800);
+      sessionStorage.setItem("fuse-execution-status", "sent");
+        }, 1800);
   };
 
   return (
@@ -266,10 +281,8 @@ export default function ExecutionPage() {
                         Message sent successfully
                       </p>
 
-                      <p className="mt-1 text-sm leading-6 text-emerald-800/70">
-                        Outreach Agent delivered the approved message to Maya
-                        Chen. The action has been recorded in the account audit
-                        trail.
+                      <p className="mt-3 text-sm leading-6 text-slate-600">
+                        {approvedMessage}
                       </p>
 
                       <div className="mt-3 flex items-center gap-2 text-xs font-medium text-emerald-700">
