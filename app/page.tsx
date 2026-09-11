@@ -1,21 +1,26 @@
 "use client";
 
-import React from "react";
+import Link from "next/link";
 import {
   Activity,
+  ArrowUpRight,
+  BarChart3,
   Bot,
+  BriefcaseBusiness,
   Building2,
   CheckCircle2,
   ChevronRight,
-  CircleDollarSign,
+  CircleUserRound,
   Clock3,
+  Gauge,
   Search,
   ShieldCheck,
   Sparkles,
   Target,
-  UserRound,
+  Users,
+  WandSparkles,
 } from "lucide-react";
-import Link from "next/link";
+import { useState } from "react";
 
 type AIRecommendation = {
   recommendation: string;
@@ -24,54 +29,56 @@ type AIRecommendation = {
   message: string;
 };
 
-const agentActivity = [
-  {
-    title: "Research Agent",
-    description:
-      "Detected a hiring surge across sales and customer success roles.",
-    time: "8 min ago",
-    icon: Search,
-  },
-  {
-    title: "Enrichment Agent",
-    description:
-      "Identified Maya Chen, VP of Sales, as the likely economic buyer.",
-    time: "14 min ago",
-    icon: UserRound,
-  },
-  {
-    title: "Strategy Agent",
-    description:
-      "Generated a personalized outreach angle based on expansion signals.",
-    time: "22 min ago",
-    icon: Sparkles,
-  },
-];
-
 const signals = [
   {
     label: "Hiring activity",
-    value: "High",
+    status: "High",
     description: "12 new GTM roles opened this month",
+    confidence: "94%",
+    icon: Users,
   },
   {
     label: "Buying intent",
-    value: "Strong",
+    status: "Strong",
     description: "Multiple revenue-ops signals detected",
+    confidence: "88%",
+    icon: Activity,
   },
   {
     label: "Decision maker",
-    value: "Found",
+    status: "Found",
     description: "VP Sales identified with 92% confidence",
+    confidence: "92%",
+    icon: Target,
+  },
+];
+
+const recentActivity = [
+  {
+    agent: "Research Agent",
+    text: "Detected accelerated GTM hiring",
+    time: "4 min ago",
+    icon: Search,
+  },
+  {
+    agent: "Enrichment Agent",
+    text: "Identified likely economic buyer",
+    time: "8 min ago",
+    icon: CircleUserRound,
+  },
+  {
+    agent: "Strategy Agent",
+    text: "Account ready for next-best-action analysis",
+    time: "Just now",
+    icon: WandSparkles,
   },
 ];
 
 export default function Home() {
   const [recommendation, setRecommendation] =
-    React.useState<AIRecommendation | null>(null);
-
-  const [isGenerating, setIsGenerating] = React.useState(false);
-  const [error, setError] = React.useState("");
+    useState<AIRecommendation | null>(null);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [error, setError] = useState("");
 
   const generateRecommendation = async () => {
     try {
@@ -102,8 +109,12 @@ export default function Home() {
       const data: AIRecommendation = await response.json();
 
       setRecommendation(data);
-
-      sessionStorage.setItem("fuse-recommendation", JSON.stringify(data));
+      sessionStorage.setItem(
+        "fuse-recommendation",
+        JSON.stringify(data)
+      );
+      sessionStorage.removeItem("fuse-approved-message");
+      sessionStorage.removeItem("fuse-execution-status");
     } catch (err) {
       console.error(err);
       setError("Strategy Agent couldn't generate a recommendation.");
@@ -113,164 +124,174 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-screen bg-[#f6f7fb] text-slate-950">
-      <div className="flex min-h-screen">
-        <aside className="hidden w-64 border-r border-slate-200 bg-white lg:flex lg:flex-col">
-          <div className="flex h-20 items-center gap-3 border-b border-slate-200 px-6">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-950 text-white">
-              <Sparkles size={20} />
+    <main className="min-h-screen bg-[#f6f7fb]">
+      <div className="mx-auto flex min-h-screen max-w-[1600px]">
+        <aside className="hidden w-[250px] shrink-0 border-r border-slate-200 bg-white px-5 py-6 lg:flex lg:flex-col">
+          <div>
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-950 text-white">
+                <Sparkles size={18} />
+              </div>
+              <div>
+                <p className="font-semibold text-slate-950">Fuse</p>
+                <p className="text-xs text-slate-500">Agent Dealroom</p>
+              </div>
             </div>
 
-            <div>
-              <p className="font-semibold">Fuse</p>
-              <p className="text-xs text-slate-500">Agent Dealroom</p>
-            </div>
+            <nav className="mt-9 space-y-1">
+              <SidebarItem icon={BarChart3} label="Overview" active />
+              <SidebarItem icon={Building2} label="Accounts" />
+              <SidebarItem icon={Bot} label="Agents" />
+              <SidebarItem icon={ShieldCheck} label="Approvals" />
+              <SidebarItem icon={Activity} label="Activity" />
+            </nav>
           </div>
 
-          <nav className="flex-1 space-y-2 p-4">
-            <SidebarItem icon={Building2} label="Overview" active />
-            <SidebarItem icon={Target} label="Accounts" />
-            <SidebarItem icon={Bot} label="Agents" />
-            <SidebarItem icon={ShieldCheck} label="Approvals" />
-            <SidebarItem icon={Activity} label="Activity" />
-          </nav>
-
-          <div className="border-t border-slate-200 p-4">
-            <div className="rounded-2xl bg-slate-950 p-4 text-white">
-              <p className="text-sm font-medium">4 agents active</p>
-              <p className="mt-1 text-xs text-slate-400">
-                Monitoring 18 target accounts
+          <div className="mt-auto rounded-3xl border border-slate-200 bg-slate-50 p-4">
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-medium uppercase tracking-[0.16em] text-slate-400">
+                Workspace
               </p>
+              <span className="h-2 w-2 rounded-full bg-emerald-500" />
             </div>
+            <p className="mt-3 font-semibold text-slate-900">4 agents active</p>
+            <p className="mt-1 text-sm leading-6 text-slate-500">
+              Monitoring 18 target accounts
+            </p>
           </div>
         </aside>
 
-        <section className="flex-1">
-          <header className="flex h-20 items-center justify-between border-b border-slate-200 bg-white px-5 md:px-8">
+        <section className="min-w-0 flex-1">
+          <header className="flex h-[76px] items-center justify-between border-b border-slate-200 bg-white px-5 md:px-8">
             <div>
-              <p className="text-sm text-slate-500">Account Intelligence</p>
-              <h1 className="text-lg font-semibold">Dealroom</h1>
+              <p className="text-xs font-medium uppercase tracking-[0.16em] text-slate-400">
+                Account Intelligence
+              </p>
+              <h1 className="text-xl font-semibold text-slate-950">Dealroom</h1>
             </div>
 
             <div className="flex items-center gap-3">
-              <button className="hidden rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm md:block">
+              <div className="hidden items-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-400 md:flex">
+                <Search size={16} />
                 Search accounts
-              </button>
-
+              </div>
               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-950 text-sm font-semibold text-white">
                 JO
               </div>
             </div>
           </header>
 
-          <div className="mx-auto max-w-7xl p-5 md:p-8">
-            <section className="mb-6 flex flex-col justify-between gap-5 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm md:flex-row md:items-center">
-              <div>
-                <div className="mb-3 flex items-center gap-3">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-700">
-                    <Building2 size={22} />
-                  </div>
-
-                  <div>
-                    <h2 className="text-2xl font-semibold">Acme Corp</h2>
-                    <p className="text-sm text-slate-500">
-                      Enterprise SaaS · 420 employees
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex flex-wrap gap-2">
-                  <Badge>Enterprise</Badge>
-                  <Badge>$85K opportunity</Badge>
-                  <Badge>Active evaluation</Badge>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-3 rounded-2xl bg-emerald-50 px-4 py-3">
-                <CheckCircle2 size={19} className="text-emerald-700" />
-
-                <div>
-                  <p className="text-xs font-medium uppercase tracking-wide text-emerald-700">
-                    Deal status
-                  </p>
-                  <p className="text-sm font-semibold text-emerald-950">
-                    Qualified opportunity
-                  </p>
-                </div>
-              </div>
-            </section>
-
-            <section className="mb-6 grid gap-4 md:grid-cols-3">
-              <MetricCard
-                icon={Target}
-                label="Deal health"
-                value="78"
-                suffix="/100"
-                description="+9 points this week"
-              />
-
-              <MetricCard
-                icon={CircleDollarSign}
-                label="Opportunity"
-                value="$85K"
-                description="Estimated annual contract"
-              />
-
-              <MetricCard
-                icon={Clock3}
-                label="Next action"
-                value="Today"
-                description="Recommended within 4 hours"
-              />
-            </section>
-
-            <section className="mb-6 grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
-              <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-                <div className="mb-6 flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-slate-500">Live intelligence</p>
-                    <h3 className="text-xl font-semibold">Agent signals</h3>
-                  </div>
-
-                  <div className="flex items-center gap-2 text-sm font-medium text-emerald-700">
-                    <span className="h-2 w-2 rounded-full bg-emerald-500" />
-                    Live
-                  </div>
-                </div>
-
-                <div className="space-y-3">
-                  {signals.map((signal) => (
-                    <div
-                      key={signal.label}
-                      className="flex flex-col gap-3 rounded-2xl border border-slate-200 p-4 sm:flex-row sm:items-center sm:justify-between"
-                    >
-                      <div>
-                        <p className="font-medium">{signal.label}</p>
-                        <p className="mt-1 text-sm text-slate-500">
-                          {signal.description}
-                        </p>
-                      </div>
-
-                      <span className="w-fit rounded-full bg-indigo-50 px-3 py-1 text-sm font-semibold text-indigo-700">
-                        {signal.value}
-                      </span>
+          <div className="p-5 md:p-8">
+            <div className="mx-auto max-w-6xl">
+              <section className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm md:p-7">
+                <div className="flex flex-col justify-between gap-6 md:flex-row md:items-start">
+                  <div className="flex items-start gap-4">
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600">
+                      <Building2 size={22} />
                     </div>
-                  ))}
+                    <div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <h2 className="text-2xl font-semibold text-slate-950">
+                          Acme Corp
+                        </h2>
+                        <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700">
+                          Qualified opportunity
+                        </span>
+                      </div>
+                      <p className="mt-2 text-sm text-slate-500">
+                        Enterprise SaaS · 420 employees
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+                    <p className="text-xs text-slate-400">Opportunity</p>
+                    <p className="mt-1 font-semibold text-slate-950">$85K ARR</p>
+                  </div>
                 </div>
-              </div>
 
-              <div className="relative overflow-hidden rounded-3xl bg-slate-950 p-6 text-white shadow-sm">
-                <div className="absolute right-0 top-0 h-40 w-40 rounded-full bg-indigo-500/20 blur-3xl" />
+                <div className="mt-7 grid gap-3 md:grid-cols-3">
+                  <MetricCard
+                    icon={Gauge}
+                    label="Deal health"
+                    value="78 / 100"
+                    detail="Strong"
+                  />
+                  <MetricCard
+                    icon={BriefcaseBusiness}
+                    label="Opportunity"
+                    value="$85K"
+                    detail="ARR potential"
+                  />
+                  <MetricCard
+                    icon={Clock3}
+                    label="Next action"
+                    value="Today"
+                    detail="Buying window"
+                  />
+                </div>
+              </section>
 
-                <div className="relative">
-                  <div className="mb-8 flex items-center gap-2 text-indigo-300">
-                    <Sparkles size={18} />
-                    <span className="text-sm font-medium">
-                      Recommended next action
+              <div className="mt-6 grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
+                <section className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
+                        Agent signals
+                      </p>
+                      <h3 className="mt-1 text-lg font-semibold text-slate-950">
+                        Account intelligence
+                      </h3>
+                    </div>
+                    <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
+                      3 signals
                     </span>
                   </div>
 
-                  <p className="text-2xl font-semibold leading-tight">
+                  <div className="mt-5 space-y-3">
+                    {signals.map((signal) => (
+                      <div
+                        key={signal.label}
+                        className="rounded-2xl border border-slate-200 p-4"
+                      >
+                        <div className="flex items-start gap-3">
+                          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-700">
+                            <signal.icon size={18} />
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <div className="flex flex-wrap items-center justify-between gap-2">
+                              <p className="font-semibold text-slate-900">
+                                {signal.label}
+                              </p>
+                              <span className="rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-semibold text-indigo-700">
+                                {signal.status}
+                              </span>
+                            </div>
+                            <p className="mt-1 text-sm leading-6 text-slate-500">
+                              {signal.description}
+                            </p>
+                            <p className="mt-2 text-xs font-medium text-slate-400">
+                              Confidence {signal.confidence}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+
+                <section className="rounded-[28px] bg-slate-950 p-6 text-white shadow-xl shadow-slate-950/10">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-sm font-medium text-indigo-200">
+                      <Sparkles size={16} />
+                      Recommended next action
+                    </div>
+                    <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-slate-300">
+                      Strategy Agent
+                    </span>
+                  </div>
+
+                  <p className="mt-6 text-2xl font-semibold leading-tight">
                     {recommendation
                       ? recommendation.recommendation
                       : "Ready to analyze Acme's account signals."}
@@ -279,24 +300,21 @@ export default function Home() {
                   <p className="mt-4 text-sm leading-6 text-slate-300">
                     {recommendation
                       ? recommendation.reasoning
-                      : "The Strategy Agent can analyze the research, enrichment, and buying-intent signals to determine the best next action."}
+                      : "The Strategy Agent can analyze research, enrichment, and buying-intent signals to determine the strongest next action."}
                   </p>
-                  <div className="mt-5 rounded-2xl bg-white/10 p-4">
-                    <p className="text-xs uppercase tracking-wide text-slate-400">
-                      Confidence
-                    </p>
 
-                    <div className="mt-2 flex items-center justify-between">
-                      <p className="font-medium">
+                  <div className="mt-6">
+                    <div className="flex items-center justify-between text-sm">
+                      <p className="font-medium text-slate-300">
                         {recommendation ? "AI confidence" : "Awaiting analysis"}
                       </p>
-
                       <p className="font-semibold">
-                        {recommendation ? `${recommendation.confidence}%` : "—"}
+                        {recommendation
+                          ? `${recommendation.confidence}%`
+                          : "—"}
                       </p>
                     </div>
-
-                    <div className="mt-3 h-2 overflow-hidden rounded-full bg-white/10">
+                    <div className="mt-2 h-2 overflow-hidden rounded-full bg-white/10">
                       <div
                         className="h-full rounded-full bg-white transition-all duration-700"
                         style={{
@@ -328,69 +346,82 @@ export default function Home() {
                     </button>
                   )}
 
+                  {recommendation && (
+                    <>
+                      <div className="mt-6 rounded-2xl border border-white/10 bg-white/5 p-4">
+                        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">
+                          Draft outreach
+                        </p>
+                        <p className="mt-2 text-sm leading-6 text-slate-300">
+                          {recommendation.message}
+                        </p>
+                      </div>
+
+                      <button
+                        onClick={generateRecommendation}
+                        disabled={isGenerating}
+                        className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-semibold text-white transition hover:bg-white/10 disabled:opacity-60"
+                      >
+                        <Sparkles size={16} />
+                        {isGenerating ? "Regenerating..." : "Regenerate"}
+                      </button>
+
+                      <Link
+                        href="/accounts/acme/review"
+                        className="mt-3 flex w-full items-center justify-center gap-2 rounded-2xl bg-white px-4 py-3 font-semibold text-slate-950 transition hover:bg-slate-100"
+                      >
+                        Review & approve
+                        <ChevronRight size={18} />
+                      </Link>
+                    </>
+                  )}
+
                   {error && (
                     <p className="mt-3 text-center text-sm text-rose-300">
                       {error}
                     </p>
                   )}
-
-                  {recommendation && (
-                    <Link
-                      href="/accounts/acme/review"
-                      className="mt-6 flex w-full items-center justify-center gap-2 rounded-2xl bg-white px-4 py-3 font-semibold text-slate-950 transition hover:bg-slate-100"
-                    >
-                      Review & approve
-                      <ChevronRight size={18} />
-                    </Link>
-                  )}
-                </div>
-              </div>
-            </section>
-
-            <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-              <div className="mb-6 flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-slate-500">Agent workspace</p>
-                  <h3 className="text-xl font-semibold">
-                    Recent agent activity
-                  </h3>
-                </div>
-
-                <button className="text-sm font-medium text-slate-600">
-                  View all
-                </button>
+                </section>
               </div>
 
-              <div className="space-y-2">
-                {agentActivity.map((activity) => {
-                  const Icon = activity.icon;
+              <section className="mt-6 rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
+                      Recent activity
+                    </p>
+                    <h3 className="mt-1 text-lg font-semibold text-slate-950">
+                      Agent activity
+                    </h3>
+                  </div>
+                  <ArrowUpRight size={18} className="text-slate-400" />
+                </div>
 
-                  return (
+                <div className="mt-5 grid gap-3 lg:grid-cols-3">
+                  {recentActivity.map((item) => (
                     <div
-                      key={activity.title}
-                      className="flex gap-4 rounded-2xl p-4 transition hover:bg-slate-50"
+                      key={item.agent}
+                      className="rounded-2xl border border-slate-200 p-4"
                     >
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100">
-                        <Icon size={18} />
-                      </div>
-
-                      <div className="min-w-0 flex-1">
-                        <div className="flex flex-col justify-between gap-1 sm:flex-row">
-                          <p className="font-medium">{activity.title}</p>
-                          <p className="text-xs text-slate-400">
-                            {activity.time}
-                          </p>
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100 text-slate-700">
+                          <item.icon size={17} />
                         </div>
-
-                        <p className="mt-1 text-sm leading-6 text-slate-500">
-                          {activity.description}
-                        </p>
+                        <div>
+                          <p className="text-sm font-semibold text-slate-900">
+                            {item.agent}
+                          </p>
+                          <p className="text-xs text-slate-400">{item.time}</p>
+                        </div>
                       </div>
+                      <p className="mt-4 text-sm leading-6 text-slate-500">
+                        {item.text}
+                      </p>
                     </div>
-                  );
-                })}
-              </div>
-            </section>
+                  ))}
+                </div>
+              </section>
+            </div>
           </div>
         </section>
       </div>
@@ -403,27 +434,21 @@ function SidebarItem({
   label,
   active = false,
 }: {
-  icon: React.ElementType;
+  icon: typeof BarChart3;
   label: string;
   active?: boolean;
 }) {
   return (
     <button
-      className={`flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition ${
-        active ? "bg-slate-950 text-white" : "text-slate-600 hover:bg-slate-100"
+      className={`flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-medium transition ${
+        active
+          ? "bg-slate-950 text-white"
+          : "text-slate-600 hover:bg-slate-100"
       }`}
     >
-      <Icon size={18} />
+      <Icon size={17} />
       {label}
     </button>
-  );
-}
-
-function Badge({ children }: { children: React.ReactNode }) {
-  return (
-    <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600">
-      {children}
-    </span>
   );
 }
 
@@ -431,31 +456,21 @@ function MetricCard({
   icon: Icon,
   label,
   value,
-  suffix,
-  description,
+  detail,
 }: {
-  icon: React.ElementType;
+  icon: typeof Gauge;
   label: string;
   value: string;
-  suffix?: string;
-  description: string;
+  detail: string;
 }) {
   return (
-    <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-      <div className="mb-5 flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100">
-        <Icon size={18} />
+    <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+      <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-[0.12em] text-slate-400">
+        <Icon size={15} />
+        {label}
       </div>
-
-      <p className="text-sm text-slate-500">{label}</p>
-
-      <p className="mt-1 text-2xl font-semibold">
-        {value}
-        {suffix && (
-          <span className="text-base font-normal text-slate-400">{suffix}</span>
-        )}
-      </p>
-
-      <p className="mt-2 text-xs text-slate-400">{description}</p>
+      <p className="mt-3 text-xl font-semibold text-slate-950">{value}</p>
+      <p className="mt-1 text-xs text-slate-500">{detail}</p>
     </div>
   );
 }
