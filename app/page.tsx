@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import {
   Activity,
   Bot,
@@ -15,6 +16,13 @@ import {
   UserRound,
 } from "lucide-react";
 import Link from "next/link";
+
+type AIRecommendation = {
+  recommendation: string;
+  reasoning: string;
+  confidence: number;
+  message: string;
+};
 
 const agentActivity = [
   {
@@ -59,6 +67,49 @@ const signals = [
 ];
 
 export default function Home() {
+  const [recommendation, setRecommendation] =
+    React.useState<AIRecommendation | null>(null);
+
+  const [isGenerating, setIsGenerating] = React.useState(false);
+  const [error, setError] = React.useState("");
+
+  const generateRecommendation = async () => {
+    try {
+      setIsGenerating(true);
+      setError("");
+
+      const response = await fetch("/api/recommendation", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          company: "Acme Corp",
+          employeeCount: 420,
+          opportunity: "$85K ARR",
+          contact: "Maya Chen, VP of Sales",
+          signals: signals.map((signal) => ({
+            label: signal.label,
+            description: signal.description,
+          })),
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to generate recommendation");
+      }
+
+      const data: AIRecommendation = await response.json();
+
+      setRecommendation(data);
+    } catch (err) {
+      console.error(err);
+      setError("Strategy Agent couldn't generate a recommendation.");
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
   return (
     <main className="min-h-screen bg-[#f6f7fb] text-slate-950">
       <div className="flex min-h-screen">
@@ -218,37 +269,78 @@ export default function Home() {
                   </div>
 
                   <p className="text-2xl font-semibold leading-tight">
-                    Reach out to Maya Chen with a tailored expansion message.
+                    {recommendation
+                      ? recommendation.recommendation
+                      : "Ready to analyze Acme's account signals."}
                   </p>
 
                   <p className="mt-4 text-sm leading-6 text-slate-300">
-                    The Strategy Agent found a strong buying window based on
-                    Acme&apos;s recent GTM hiring activity and revenue-ops
-                    expansion.
+                    {recommendation
+                      ? recommendation.reasoning
+                      : "The Strategy Agent can analyze the research, enrichment, and buying-intent signals to determine the best next action."}
                   </p>
-
                   <div className="mt-5 rounded-2xl bg-white/10 p-4">
                     <p className="text-xs uppercase tracking-wide text-slate-400">
                       Confidence
                     </p>
 
                     <div className="mt-2 flex items-center justify-between">
-                      <p className="font-medium">High confidence</p>
-                      <p className="font-semibold">91%</p>
+                      <p className="font-medium">
+                        {recommendation ? "AI confidence" : "Awaiting analysis"}
+                      </p>
+
+                      <p className="font-semibold">
+                        {recommendation ? `${recommendation.confidence}%` : "—"}
+                      </p>
                     </div>
 
                     <div className="mt-3 h-2 overflow-hidden rounded-full bg-white/10">
-                      <div className="h-full w-[91%] rounded-full bg-white" />
+                      <div
+                        className="h-full rounded-full bg-white transition-all duration-700"
+                        style={{
+                          width: recommendation
+                            ? `${recommendation.confidence}%`
+                            : "0%",
+                        }}
+                      />
                     </div>
                   </div>
 
-                  <Link
-                    href="/accounts/acme/review"
-                    className="mt-6 flex w-full items-center justify-center gap-2 rounded-2xl bg-white px-4 py-3 font-semibold text-slate-950 transition hover:bg-slate-100"
-                  >
-                    Review & approve
-                    <ChevronRight size={18} />
-                  </Link>
+                  {!recommendation && (
+                    <button
+                      onClick={generateRecommendation}
+                      disabled={isGenerating}
+                      className="mt-6 flex w-full items-center justify-center gap-2 rounded-2xl bg-indigo-500 px-4 py-3 font-semibold text-white transition hover:bg-indigo-400 disabled:cursor-wait disabled:opacity-70"
+                    >
+                      {isGenerating ? (
+                        <>
+                          <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                          Strategy Agent analyzing...
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles size={17} />
+                          Generate AI recommendation
+                        </>
+                      )}
+                    </button>
+                  )}
+
+                  {error && (
+                    <p className="mt-3 text-center text-sm text-rose-300">
+                      {error}
+                    </p>
+                  )}
+
+                  {recommendation && (
+                    <Link
+                      href="/accounts/acme/review"
+                      className="mt-6 flex w-full items-center justify-center gap-2 rounded-2xl bg-white px-4 py-3 font-semibold text-slate-950 transition hover:bg-slate-100"
+                    >
+                      Review & approve
+                      <ChevronRight size={18} />
+                    </Link>
+                  )}
                 </div>
               </div>
             </section>
