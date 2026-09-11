@@ -12,6 +12,7 @@ import {
   Sparkles,
   UserRound,
 } from "lucide-react";
+import { useState } from "react";
 
 const timeline = [
   {
@@ -54,7 +55,22 @@ const timeline = [
   },
 ];
 
+type ExecutionStatus = "ready" | "sending" | "sent";
+
 export default function ExecutionPage() {
+  const [executionStatus, setExecutionStatus] =
+    useState<ExecutionStatus>("ready");
+
+  const executeOutreach = () => {
+    if (executionStatus !== "ready") return;
+
+    setExecutionStatus("sending");
+
+    setTimeout(() => {
+      setExecutionStatus("sent");
+    }, 1800);
+  };
+
   return (
     <main className="min-h-screen bg-[#f6f7fb] text-slate-950">
       <header className="border-b border-slate-200 bg-white">
@@ -100,7 +116,16 @@ export default function ExecutionPage() {
             <div className="mt-6 grid gap-3 sm:grid-cols-3">
               <Stat label="Agents involved" value="4" />
               <Stat label="Human gates" value="1" />
-              <Stat label="Current state" value="Ready" />
+              <Stat
+                label="Current state"
+                value={
+                  executionStatus === "sent"
+                    ? "Sent"
+                    : executionStatus === "sending"
+                      ? "Executing"
+                      : "Ready"
+                }
+              />
             </div>
           </div>
 
@@ -153,7 +178,13 @@ export default function ExecutionPage() {
                           <div className="flex shrink-0 flex-col items-start gap-1 sm:items-end">
                             <StatusBadge status={item.status} />
                             <span className="text-xs text-slate-400">
-                              {item.time}
+                              {item.title === "Outreach Agent" &&
+                              executionStatus === "sent"
+                                ? "Just now"
+                                : item.title === "Outreach Agent" &&
+                                    executionStatus === "sending"
+                                  ? "In progress"
+                                  : item.time}
                             </span>
                           </div>
                         </div>
@@ -175,7 +206,11 @@ export default function ExecutionPage() {
                 <div>
                   <p className="font-semibold">Outreach Agent</p>
                   <p className="text-sm text-slate-500">
-                    Waiting for execution
+                    {executionStatus === "sent"
+                      ? "Execution completed"
+                      : executionStatus === "sending"
+                        ? "Executing approved action..."
+                        : "Waiting for execution"}
                   </p>
                 </div>
               </div>
@@ -191,10 +226,60 @@ export default function ExecutionPage() {
                 </p>
               </div>
 
-              <button className="mt-5 flex w-full items-center justify-center gap-2 rounded-2xl bg-slate-950 px-4 py-3 font-semibold text-white transition hover:bg-slate-800">
-                <Mail size={17} />
-                Execute outreach
+              <button
+                onClick={executeOutreach}
+                disabled={executionStatus !== "ready"}
+                className={`mt-5 flex w-full items-center justify-center gap-2 rounded-2xl px-4 py-3 font-semibold transition ${
+                  executionStatus === "sent"
+                    ? "bg-emerald-600 text-white"
+                    : executionStatus === "sending"
+                      ? "cursor-wait bg-slate-700 text-white"
+                      : "bg-slate-950 text-white hover:bg-slate-800"
+                }`}
+              >
+                {executionStatus === "sent" ? (
+                  <>
+                    <CheckCircle2 size={17} />
+                    Outreach sent
+                  </>
+                ) : executionStatus === "sending" ? (
+                  <>
+                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                    Outreach Agent executing...
+                  </>
+                ) : (
+                  <>
+                    <Mail size={17} />
+                    Execute outreach
+                  </>
+                )}
               </button>
+              {executionStatus === "sent" && (
+                <div className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
+                  <div className="flex items-start gap-3">
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white text-emerald-700">
+                      <CheckCircle2 size={18} />
+                    </div>
+
+                    <div>
+                      <p className="font-semibold text-emerald-950">
+                        Message sent successfully
+                      </p>
+
+                      <p className="mt-1 text-sm leading-6 text-emerald-800/70">
+                        Outreach Agent delivered the approved message to Maya
+                        Chen. The action has been recorded in the account audit
+                        trail.
+                      </p>
+
+                      <div className="mt-3 flex items-center gap-2 text-xs font-medium text-emerald-700">
+                        <Clock3 size={14} />
+                        Sent just now
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="rounded-3xl border border-indigo-100 bg-indigo-50 p-6">
