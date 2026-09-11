@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import {
   ArrowLeft,
   Bot,
@@ -57,11 +57,35 @@ type AIRecommendation = {
   message: string;
 };
 
+function loadStoredRecommendation(): AIRecommendation | null {
+  if (typeof window === "undefined") return null;
+
+  const stored = sessionStorage.getItem("fuse-recommendation");
+
+  if (!stored) return null;
+
+  try {
+    return JSON.parse(stored) as AIRecommendation;
+  } catch (error) {
+    console.error("Could not load AI recommendation:", error);
+    return null;
+  }
+}
+
 export default function ReviewPage() {
   const [decision, setDecision] = useState<DecisionState>("pending");
   const [isEditing, setIsEditing] = useState(false);
-  const [message, setMessage] = useState(defaultMessage);
-  const [savedMessage, setSavedMessage] = useState(defaultMessage);
+
+  const [aiRecommendation] = useState<AIRecommendation | null>(
+    loadStoredRecommendation,
+  );
+
+  const [message, setMessage] = useState(
+    () => aiRecommendation?.message ?? defaultMessage,
+  );
+  const [savedMessage, setSavedMessage] = useState(
+    () => aiRecommendation?.message ?? defaultMessage,
+  );
 
   const editSectionRef = useRef<HTMLDivElement>(null);
 
@@ -79,6 +103,8 @@ export default function ReviewPage() {
   const saveEdit = () => {
     setSavedMessage(message);
     setIsEditing(false);
+
+    sessionStorage.setItem("fuse-approved-message", message);
   };
 
   const cancelEdit = () => {
@@ -128,17 +154,22 @@ export default function ReviewPage() {
             </div>
 
             <h2 className="max-w-2xl text-2xl font-semibold leading-tight md:text-3xl">
-              Reach out to Maya Chen with a tailored expansion message.
+              {aiRecommendation?.recommendation ??
+                "Reach out to Maya Chen with a tailored expansion message."}
             </h2>
 
             <p className="mt-4 max-w-2xl text-sm leading-6 text-slate-300">
-              The agent believes Acme Corp is entering a strong buying window
-              based on hiring activity, revenue-operations expansion, and the
-              identification of a likely decision maker.
+              {aiRecommendation?.reasoning ??
+                "The agent believes Acme Corp is entering a strong buying window based on hiring activity, revenue-operations expansion, and the identification of a likely decision maker."}
             </p>
 
             <div className="mt-6 grid gap-3 sm:grid-cols-3">
-              <Stat label="Confidence" value="91%" />
+              <Stat
+                label="Confidence"
+                value={
+                  aiRecommendation ? `${aiRecommendation.confidence}%` : "91%"
+                }
+              />
               <Stat label="Signals used" value="3" />
               <Stat label="Recommended timing" value="Today" />
             </div>
@@ -287,7 +318,13 @@ export default function ReviewPage() {
 
           <DecisionPanel
             decision={decision}
-            onApprove={() => setDecision("approved")}
+            onApprove={() => {
+              setDecision("approved");
+
+              sessionStorage.setItem("fuse-approved-message", savedMessage);
+
+              sessionStorage.setItem("fuse-execution-status", "approved");
+            }}
             onReject={() => setDecision("rejected")}
             onEdit={startEditing}
             onReset={() => setDecision("pending")}
