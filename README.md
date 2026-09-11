@@ -16,31 +16,31 @@ AI sales agents can research accounts and draft actions quickly, but customer-fa
 
 The Dealroom starts with opportunity context and signals such as hiring activity, buying intent, and the likely decision maker. The Strategy Agent can then analyze those signals.
 
-![Account intelligence dashboard](public/screenshots/01-account-intelligence.png)
+![Account intelligence dashboard](public/01-account-intelligence.png)
 
 ### 2. AI-generated recommendation
 
 The Strategy Agent sends the supplied account context to Gemini and generates a next-best action, reasoning, confidence score, and concise outreach draft.
 
-![AI-generated sales recommendation](public/screenshots/02-ai-recommendation.png)
+![AI-generated sales recommendation](public/02-ai-recommendation.png)
 
 ### 3. Human review and approval
 
 Before a customer-facing action is released, the user can inspect the recommendation and supporting evidence, edit the outreach message, approve it, or reject it.
 
-![Human approval workflow](public/screenshots/03-human-review.png)
+![Human approval workflow](public/03-human-review.png)
 
 ### 4. Approved action enters execution
 
 Once approved, the exact message selected by the human is carried into the execution view. The interface makes the handoff across Research, Enrichment, Strategy, Human Approval, and Outreach explicit.
 
-![Agent execution ready](public/screenshots/04-execution-ready.png)
+![Agent execution ready](public/04-execution-ready.png)
 
 ### 5. Auditable completion
 
 The Outreach Agent can execute the approved action in the prototype. The UI records the completed state and shows the chain that led to execution.
 
-![Completed agent execution](public/screenshots/05-execution-complete.png)
+![Completed agent execution](public/05-execution-complete.png)
 
 ## What is actually AI-powered?
 
