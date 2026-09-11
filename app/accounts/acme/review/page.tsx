@@ -50,6 +50,13 @@ Worth a quick conversation?`;
 
 type DecisionState = "pending" | "approved" | "rejected";
 
+type AIRecommendation = {
+  recommendation: string;
+  reasoning: string;
+  confidence: number;
+  message: string;
+};
+
 export default function ReviewPage() {
   const [decision, setDecision] = useState<DecisionState>("pending");
   const [isEditing, setIsEditing] = useState(false);

@@ -102,6 +102,8 @@ export default function Home() {
       const data: AIRecommendation = await response.json();
 
       setRecommendation(data);
+
+      sessionStorage.setItem("fuse-recommendation", JSON.stringify(data));
     } catch (err) {
       console.error(err);
       setError("Strategy Agent couldn't generate a recommendation.");
